@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <title>Limit Sets</title>
+  </head>
+  <body>
+    <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
+    <link href="static/assets/css/slview.css" rel="stylesheet">
+
+    <!-- SHADERS -->
+    <script type="x-shader/x-vertex" id="vertexshader">
+    attribute vec2 vecdatum; // vector component 4 & size
+    varying vec3 vColor;
+    varying float normsq;
+    uniform float coordscale;
+    uniform float sizescale;
+    uniform mat4 r4transform;
+    uniform bool sl2mode;
+    void main() {
+      vec4 ns3;
+      
+      float x = position.x;
+      float y = position.y;
+      float z = position.z;
+
+      vColor = vec3(1.0,1.0,1.0);
+      ns3 = vec4(x,y,z,0);
+      ns3 = r4transform * ns3;
+
+      // Stereographic projection to R^3
+      vec3 r3p = coordscale * ns3.xyz;
+      vec4 mvPosition = modelViewMatrix * vec4( r3p, 1.0 );
+
+      // gl_PointSize is measured in _pixels_
+      gl_PointSize = sizescale * ( 300.0 / -mvPosition.z );
+      gl_Position = projectionMatrix * mvPosition;
+    }
+    </script>
+    <script type="x-shader/x-fragment" id="fragmentshader">
+    uniform sampler2D pointTexture;
+    varying vec3 vColor;
+    uniform float alpha;
+    void main() {
+      gl_FragColor = vec4( vColor, alpha );
+      gl_FragColor = gl_FragColor * texture2D( pointTexture, gl_PointCoord );
+    }
+    </script>
+    <!-- END SHADERS -->
+
+    <script src="static/app.js" type="module"></script>
+
+    <div id="statusbox"><span id="desc-short">Loading...</span> &nbsp; <a href="#" onclick="document.getElementById('infobox').style.display = 'block'" id="infobutton">[Info]</a></div>
+    <div class="modal" id="infobox"><span class="modal-close-button topright">&times;</span><h1><span id="desc-title"></span></h1>
+      <span id="desc-long"></span>
+      <hr>
+	This tool displays limit sets of Quasi-Fuchsian groups in the boundary sphere. Limit points were computed using the framework from Indra's Pearls by Mumford, Series, and Wright.
+      <hr>
+	The code used here is a fragment of SL(View) 0.4 by <a href="http://dumas.io">David Dumas</a>  <span style="float:right"><a href="https://github.com/daviddumas/slview/">[code]</a></span>
+    </div>
+    <div class="modal" id="loadingbox"><h1 id="loadingmsg"></h1></div>
+  </body>
+</html>
